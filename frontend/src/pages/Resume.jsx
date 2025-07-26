@@ -2,10 +2,17 @@ import React from 'react';
 import { Download, ExternalLink, Calendar, MapPin } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Card, CardContent } from '../components/ui/card';
-import { mockData } from '../data/mock';
+import { useTimeline, usePortfolio } from '../hooks/usePortfolio';
+import { LoadingPage, LoadingSection } from '../components/LoadingSpinner';
+import ErrorMessage from '../components/ErrorMessage';
 
 const Resume = ({ language }) => {
-  const timeline = mockData.timeline[language];
+  const { timelineData, loading: timelineLoading, error: timelineError } = useTimeline(language);
+  const { portfolioData, loading: portfolioLoading } = usePortfolio(language);
+
+  if (portfolioLoading) return <LoadingPage message={language === 'en' ? 'Loading resume...' : 'Laster CV...'} />;
+
+  const personalData = portfolioData?.personal || {};
 
   return (
     <div className="min-h-screen py-20">
@@ -50,39 +57,45 @@ const Resume = ({ language }) => {
             {language === 'en' ? 'Professional Experience' : 'Arbeidserfaring'}
           </h2>
           
-          <div className="relative">
-            {/* Timeline line */}
-            <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-blue-200"></div>
-            
-            <div className="space-y-8">
-              {timeline.map((item, index) => (
-                <div key={index} className="relative flex items-start">
-                  {/* Timeline dot */}
-                  <div className="absolute left-6 w-4 h-4 bg-blue-600 rounded-full border-4 border-white shadow-lg"></div>
-                  
-                  {/* Content */}
-                  <div className="ml-16 w-full">
-                    <Card className="hover:shadow-lg transition-shadow">
-                      <CardContent className="p-6">
-                        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-3">
-                          <h3 className="text-xl font-bold text-gray-900">{item.title}</h3>
-                          <div className="flex items-center space-x-2 text-sm text-gray-500">
-                            <Calendar className="w-4 h-4" />
-                            <span>{item.year}</span>
+          {timelineLoading ? (
+            <LoadingSection message={language === 'en' ? 'Loading experience...' : 'Laster erfaring...'} />
+          ) : timelineError ? (
+            <ErrorMessage message={timelineError} />
+          ) : (
+            <div className="relative">
+              {/* Timeline line */}
+              <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-blue-200"></div>
+              
+              <div className="space-y-8">
+                {timelineData.map((item, index) => (
+                  <div key={index} className="relative flex items-start">
+                    {/* Timeline dot */}
+                    <div className="absolute left-6 w-4 h-4 bg-blue-600 rounded-full border-4 border-white shadow-lg"></div>
+                    
+                    {/* Content */}
+                    <div className="ml-16 w-full">
+                      <Card className="hover:shadow-lg transition-shadow">
+                        <CardContent className="p-6">
+                          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-3">
+                            <h3 className="text-xl font-bold text-gray-900">{item.title}</h3>
+                            <div className="flex items-center space-x-2 text-sm text-gray-500">
+                              <Calendar className="w-4 h-4" />
+                              <span>{item.year}</span>
+                            </div>
                           </div>
-                        </div>
-                        <div className="flex items-center space-x-2 mb-3">
-                          <MapPin className="w-4 h-4 text-blue-600" />
-                          <span className="text-blue-600 font-medium">{item.company}</span>
-                        </div>
-                        <p className="text-gray-700">{item.description}</p>
-                      </CardContent>
-                    </Card>
+                          <div className="flex items-center space-x-2 mb-3">
+                            <MapPin className="w-4 h-4 text-blue-600" />
+                            <span className="text-blue-600 font-medium">{item.company}</span>
+                          </div>
+                          <p className="text-gray-700">{item.description}</p>
+                        </CardContent>
+                      </Card>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Key Achievements */}
@@ -161,7 +174,12 @@ const Resume = ({ language }) => {
               <ExternalLink className="mr-2 w-4 h-4" />
               {language === 'en' ? 'Contact Me' : 'Kontakt Meg'}
             </Button>
-            <Button variant="outline" size="lg" className="border-gray-300 text-gray-700 hover:bg-gray-50">
+            <Button 
+              variant="outline" 
+              size="lg" 
+              className="border-gray-300 text-gray-700 hover:bg-gray-50"
+              onClick={() => window.open(personalData.linkedin, '_blank')}
+            >
               <ExternalLink className="mr-2 w-4 h-4" />
               LinkedIn
             </Button>
