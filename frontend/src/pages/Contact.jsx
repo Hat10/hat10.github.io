@@ -6,7 +6,9 @@ import { Input } from '../components/ui/input';
 import { Textarea } from '../components/ui/textarea';
 import { Label } from '../components/ui/label';
 import { useToast } from '../hooks/use-toast';
-import { mockData } from '../data/mock';
+import { usePortfolio } from '../hooks/usePortfolio';
+import { portfolioAPI } from '../services/api';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 const Contact = ({ language }) => {
   const [formData, setFormData] = useState({
@@ -17,6 +19,13 @@ const Contact = ({ language }) => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+  const { portfolioData } = usePortfolio(language);
+
+  const personalData = portfolioData?.personal || {
+    email: 'andreasstenb@gmail.com',
+    linkedin: 'https://www.linkedin.com/in/andreasstenberg/',
+    github: 'https://github.com/Hat10'
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -30,17 +39,30 @@ const Contact = ({ language }) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Simulate form submission
-    setTimeout(() => {
+    try {
+      const response = await portfolioAPI.submitContact(formData);
+      
       toast({
         title: language === 'en' ? 'Message Sent!' : 'Melding Sendt!',
-        description: language === 'en' 
+        description: response.message || (language === 'en' 
           ? "Thank you for your message. I'll get back to you soon."
-          : 'Takk for meldingen din. Jeg kommer tilbake til deg snart.',
+          : 'Takk for meldingen din. Jeg kommer tilbake til deg snart.'),
       });
+      
+      // Clear form on success
       setFormData({ name: '', email: '', subject: '', message: '' });
+      
+    } catch (error) {
+      toast({
+        title: language === 'en' ? 'Error' : 'Feil',
+        description: language === 'en' 
+          ? 'Failed to send message. Please try again.'
+          : 'Kunne ikke sende melding. Vennligst prøv igjen.',
+        variant: 'destructive'
+      });
+    } finally {
       setIsSubmitting(false);
-    }, 1500);
+    }
   };
 
   return (
@@ -78,10 +100,10 @@ const Contact = ({ language }) => {
                       {language === 'en' ? 'Email' : 'E-post'}
                     </h3>
                     <a 
-                      href={`mailto:${mockData.personal.email}`}
+                      href={`mailto:${personalData.email}`}
                       className="text-blue-600 hover:text-blue-700 transition-colors"
                     >
-                      {mockData.personal.email}
+                      {personalData.email}
                     </a>
                     <p className="text-sm text-gray-600 mt-1">
                       {language === 'en' 
@@ -118,7 +140,7 @@ const Contact = ({ language }) => {
                   </h3>
                   <div className="space-y-3">
                     <a
-                      href={mockData.personal.linkedin}
+                      href={personalData.linkedin}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center space-x-3 text-gray-700 hover:text-blue-600 transition-colors"
@@ -127,7 +149,7 @@ const Contact = ({ language }) => {
                       <span>LinkedIn Profile</span>
                     </a>
                     <a
-                      href={mockData.personal.github}
+                      href={personalData.github}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center space-x-3 text-gray-700 hover:text-gray-900 transition-colors"
@@ -242,6 +264,7 @@ const Contact = ({ language }) => {
                   >
                     {isSubmitting ? (
                       <>
+                        <LoadingSpinner size="sm" className="mr-2" />
                         {language === 'en' ? 'Sending...' : 'Sender...'}
                       </>
                     ) : (
