@@ -3,23 +3,30 @@ import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, ExternalLink } from 'lucide-react';
 import { Button } from './ui/button';
 import LanguageToggle from './LanguageToggle';
-import { mockData } from '../data/mock';
+import { usePortfolio } from '../hooks/usePortfolio';
 
 const Header = ({ language, onLanguageChange }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
-  const nav = mockData.navigation[language];
+  const { portfolioData } = usePortfolio(language);
 
   const navigationItems = [
-    { name: nav.home, href: '/' },
-    { name: nav.about, href: '/about' },
-    { name: nav.resume, href: '/resume' },
-    { name: nav.projects, href: '/projects' },
-    { name: nav.blog, href: '/blog' },
-    { name: nav.contact, href: '/contact' },
+    { name: language === 'en' ? 'Home' : 'Hjem', href: '/' },
+    { name: language === 'en' ? 'About Me' : 'Om meg', href: '/about' },
+    { name: language === 'en' ? 'Resume' : 'CV', href: '/resume' },
+    { name: language === 'en' ? 'Projects' : 'Prosjekter', href: '/projects' },
+    { name: language === 'en' ? 'Blog' : 'Artikler', href: '/blog' },
+    { name: language === 'en' ? 'Contact' : 'Kontakt', href: '/contact' },
   ];
 
   const isActive = (path) => location.pathname === path;
+
+  // Use portfolio data or fallback to defaults
+  const personalData = portfolioData?.personal || {
+    title: language === 'en' ? 'Audit Accountant at KPMG' : 'Revisjonsrevisor i KPMG',
+    linkedin: 'https://www.linkedin.com/in/andreasstenberg/',
+    github: 'https://github.com/Hat10'
+  };
 
   return (
     <header className="bg-white/95 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-50">
@@ -32,7 +39,7 @@ const Header = ({ language, onLanguageChange }) => {
             </div>
             <div className="hidden sm:block">
               <h1 className="text-xl font-bold text-gray-900">Andreas Stenberg</h1>
-              <p className="text-sm text-gray-600">{mockData.personal.title[language]}</p>
+              <p className="text-sm text-gray-600">{personalData.title}</p>
             </div>
           </Link>
 
@@ -57,7 +64,7 @@ const Header = ({ language, onLanguageChange }) => {
           <div className="flex items-center space-x-4">
             <div className="hidden sm:flex items-center space-x-3">
               <a
-                href={mockData.personal.linkedin}
+                href={personalData.linkedin}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-gray-500 hover:text-blue-600 transition-colors"
@@ -65,7 +72,7 @@ const Header = ({ language, onLanguageChange }) => {
                 <ExternalLink className="w-5 h-5" />
               </a>
               <a
-                href={mockData.personal.github}
+                href={personalData.github}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-gray-500 hover:text-gray-900 transition-colors"
@@ -111,7 +118,7 @@ const Header = ({ language, onLanguageChange }) => {
               ))}
               <div className="pt-3 border-t border-gray-200 flex items-center space-x-4">
                 <a
-                  href={mockData.personal.linkedin}
+                  href={personalData.linkedin}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-gray-500 hover:text-blue-600 transition-colors"
@@ -119,7 +126,7 @@ const Header = ({ language, onLanguageChange }) => {
                   LinkedIn
                 </a>
                 <a
-                  href={mockData.personal.github}
+                  href={personalData.github}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-gray-500 hover:text-gray-900 transition-colors"
