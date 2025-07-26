@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Query
 from typing import Optional
-from ..models.portfolio import Portfolio, PortfolioCreate
-from ..database import db
+from models.portfolio import Portfolio, PortfolioCreate
+from database import db
 import logging
 
 logger = logging.getLogger(__name__)
