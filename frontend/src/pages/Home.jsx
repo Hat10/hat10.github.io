@@ -2,11 +2,19 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Download, ExternalLink } from 'lucide-react';
 import { Button } from '../components/ui/button';
-import { mockData } from '../data/mock';
+import { usePortfolio } from '../hooks/usePortfolio';
+import { LoadingPage } from '../components/LoadingSpinner';
+import ErrorMessage from '../components/ErrorMessage';
 
 const Home = ({ language }) => {
-  const content = mockData.home[language];
-  const nav = mockData.navigation[language];
+  const { portfolioData, loading, error } = usePortfolio(language);
+
+  if (loading) return <LoadingPage message={language === 'en' ? 'Loading portfolio...' : 'Laster portefølje...'} />;
+  if (error) return <ErrorMessage message={error} />;
+  if (!portfolioData) return <ErrorMessage message="Portfolio data not found" />;
+
+  const { personal, home } = portfolioData;
+  const content = home;
 
   return (
     <div className="min-h-screen">
@@ -43,7 +51,7 @@ const Home = ({ language }) => {
               {/* Quick Links */}
               <div className="flex items-center space-x-6 pt-8">
                 <a
-                  href={mockData.personal.linkedin}
+                  href={personal.linkedin}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center space-x-2 text-gray-600 hover:text-blue-600 transition-colors"
@@ -52,7 +60,7 @@ const Home = ({ language }) => {
                   <span className="text-sm font-medium">LinkedIn</span>
                 </a>
                 <a
-                  href={mockData.personal.github}
+                  href={personal.github}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
@@ -68,8 +76,8 @@ const Home = ({ language }) => {
               <div className="relative">
                 <div className="w-80 h-80 lg:w-96 lg:h-96 rounded-full overflow-hidden shadow-2xl">
                   <img
-                    src={mockData.personal.profileImage}
-                    alt={mockData.personal.name}
+                    src={personal.profileImage}
+                    alt={personal.name}
                     className="w-full h-full object-cover"
                   />
                 </div>
