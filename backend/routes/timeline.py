@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Query
 from typing import List, Optional
-from ..models.timeline import Timeline, TimelineCreate, TimelineResponse
-from ..database import db
+from models.timeline import Timeline, TimelineCreate, TimelineResponse
+from database import db
 import logging
 
 logger = logging.getLogger(__name__)
