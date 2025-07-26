@@ -2,13 +2,19 @@ import React from 'react';
 import { GraduationCap, Award, Globe, Heart } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
-import { mockData } from '../data/mock';
+import { usePortfolio } from '../hooks/usePortfolio';
+import { LoadingPage } from '../components/LoadingSpinner';
+import ErrorMessage from '../components/ErrorMessage';
 
 const About = ({ language }) => {
-  const education = mockData.about.education[language];
-  const skills = mockData.about.skills[language];
-  const languages = mockData.about.languages[language];
-  const interests = mockData.about.interests[language];
+  const { portfolioData, loading, error } = usePortfolio(language);
+
+  if (loading) return <LoadingPage message={language === 'en' ? 'Loading about information...' : 'Laster om-informasjon...'} />;
+  if (error) return <ErrorMessage message={error} />;
+  if (!portfolioData) return <ErrorMessage message="About data not found" />;
+
+  const { personal, about } = portfolioData;
+  const { education, skills, languages, interests } = about;
 
   return (
     <div className="min-h-screen py-20">
@@ -20,8 +26,8 @@ const About = ({ language }) => {
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
             {language === 'en' 
-              ? 'Born March 29, 1999, I combine financial expertise with technological innovation. My journey spans from nanotechnology engineering to financial economics, creating a unique perspective on data-driven decision making.'
-              : 'Født 29. mars 1999, kombinerer jeg finansiell ekspertise med teknologisk innovasjon. Min reise spenner fra nanoteknologi-ingeniørfag til finansiell økonomi, og skaper et unikt perspektiv på datadrevet beslutningstaking.'
+              ? `Born ${personal.birthdate}, I combine financial expertise with technological innovation. My journey spans from nanotechnology engineering to financial economics, creating a unique perspective on data-driven decision making.`
+              : `Født ${personal.birthdate}, kombinerer jeg finansiell ekspertise med teknologisk innovasjon. Min reise spenner fra nanoteknologi-ingeniørfag til finansiell økonomi, og skaper et unikt perspektiv på datadrevet beslutningstaking.`
             }
           </p>
         </div>
@@ -33,19 +39,19 @@ const About = ({ language }) => {
               <div className="text-center">
                 <div className="w-64 h-64 mx-auto rounded-2xl overflow-hidden shadow-xl mb-6">
                   <img
-                    src={mockData.personal.profileImage}
-                    alt={mockData.personal.name}
+                    src={personal.profileImage}
+                    alt={personal.name}
                     className="w-full h-full object-cover"
                   />
                 </div>
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                  {mockData.personal.name}
+                  {personal.name}
                 </h2>
                 <p className="text-lg text-gray-600 mb-4">
-                  {mockData.personal.title[language]}
+                  {personal.title}
                 </p>
                 <p className="text-sm text-gray-500">
-                  {language === 'en' ? 'Born' : 'Født'}: {mockData.personal.birthdate}
+                  {language === 'en' ? 'Born' : 'Født'}: {personal.birthdate}
                 </p>
               </div>
             </div>
