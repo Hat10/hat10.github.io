@@ -1,11 +1,13 @@
 from fastapi import APIRouter, HTTPException, Query
 from typing import Optional
 from ..models.portfolio import Portfolio, PortfolioCreate
-from ..database import db
 import logging
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api", tags=["portfolio"])
+
+# Import db from server.py to avoid circular imports
+from ..server import db
 
 @router.get("/portfolio")
 async def get_portfolio(lang: Optional[str] = Query("en", regex="^(en|no)$")):
