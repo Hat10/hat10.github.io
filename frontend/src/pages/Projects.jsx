@@ -3,10 +3,19 @@ import { ExternalLink, Github, Zap } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
-import { mockData } from '../data/mock';
+import { useProjects, usePortfolio } from '../hooks/usePortfolio';
+import { LoadingPage, LoadingSection } from '../components/LoadingSpinner';
+import ErrorMessage from '../components/ErrorMessage';
 
 const Projects = ({ language }) => {
-  const projects = mockData.projects[language];
+  const { projectsData, loading: projectsLoading, error: projectsError } = useProjects(language);
+  const { portfolioData } = usePortfolio(language);
+
+  const personalData = portfolioData?.personal || {
+    github: 'https://github.com/Hat10'
+  };
+
+  if (projectsLoading) return <LoadingPage message={language === 'en' ? 'Loading projects...' : 'Laster prosjekter...'} />;
 
   return (
     <div className="min-h-screen py-20">
@@ -42,7 +51,7 @@ const Projects = ({ language }) => {
             <Button 
               size="lg" 
               className="bg-gray-900 hover:bg-gray-800 text-white"
-              onClick={() => window.open(mockData.personal.github, '_blank')}
+              onClick={() => window.open(personalData.github, '_blank')}
             >
               <Github className="mr-2 w-5 h-5" />
               {language === 'en' ? 'Visit GitHub Profile' : 'Besøk GitHub-profil'}
@@ -56,61 +65,74 @@ const Projects = ({ language }) => {
             {language === 'en' ? 'Featured Projects' : 'Utvalgte Prosjekter'}
           </h2>
           
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {projects.map((project, index) => (
-              <Card key={index} className="group hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-                <CardHeader className="pb-4">
-                  <div className="flex items-start justify-between">
-                    <CardTitle className="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
-                      {project.title}
-                    </CardTitle>
-                    <div className="flex items-center space-x-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="opacity-0 group-hover:opacity-100 transition-opacity"
+          {projectsError ? (
+            <ErrorMessage message={projectsError} />
+          ) : projectsData.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-gray-600">
+                {language === 'en' ? 'No projects found.' : 'Ingen prosjekter funnet.'}
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {projectsData.map((project, index) => (
+                <Card key={index} className="group hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                  <CardHeader className="pb-4">
+                    <div className="flex items-start justify-between">
+                      <CardTitle className="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
+                        {project.title}
+                      </CardTitle>
+                      <div className="flex items-center space-x-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={() => window.open(project.github, '_blank')}
+                        >
+                          <Github className="w-4 h-4" />
+                        </Button>
+                        {project.live_url && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={() => window.open(project.live_url, '_blank')}
+                          >
+                            <ExternalLink className="w-4 h-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <p className="text-gray-700 leading-relaxed">
+                      {project.description}
+                    </p>
+                    
+                    <div className="flex flex-wrap gap-2">
+                      {project.technologies.map((tech, techIndex) => (
+                        <Badge key={techIndex} variant="secondary" className="bg-blue-100 text-blue-800">
+                          {tech}
+                        </Badge>
+                      ))}
+                    </div>
+
+                    <div className="pt-4 border-t border-gray-100">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="w-full border-blue-600 text-blue-600 hover:bg-blue-50"
                         onClick={() => window.open(project.github, '_blank')}
                       >
-                        <Github className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <ExternalLink className="w-4 h-4" />
+                        <Github className="mr-2 w-4 h-4" />
+                        {language === 'en' ? 'View Source Code' : 'Se Kildekode'}
                       </Button>
                     </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <p className="text-gray-700 leading-relaxed">
-                    {project.description}
-                  </p>
-                  
-                  <div className="flex flex-wrap gap-2">
-                    {project.technologies.map((tech, techIndex) => (
-                      <Badge key={techIndex} variant="secondary" className="bg-blue-100 text-blue-800">
-                        {tech}
-                      </Badge>
-                    ))}
-                  </div>
-
-                  <div className="pt-4 border-t border-gray-100">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="w-full border-blue-600 text-blue-600 hover:bg-blue-50"
-                      onClick={() => window.open(project.github, '_blank')}
-                    >
-                      <Github className="mr-2 w-4 h-4" />
-                      {language === 'en' ? 'View Source Code' : 'Se Kildekode'}
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Skills & Tools */}
