@@ -5,11 +5,9 @@ from motor.motor_asyncio import AsyncIOMotorClient
 import os
 import logging
 from pathlib import Path
-from pydantic import BaseModel, Field
-from typing import List
-import uuid
-from datetime import datetime
 
+# Import route modules
+from routes import portfolio, timeline, projects, blog, contact
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -20,40 +18,24 @@ client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
 # Create the main app without a prefix
-app = FastAPI()
+app = FastAPI(title="Andreas Stenberg Portfolio API", version="1.0.0")
 
-# Create a router with the /api prefix
-api_router = APIRouter(prefix="/api")
+# Include all routers
+app.include_router(portfolio.router)
+app.include_router(timeline.router)
+app.include_router(projects.router)
+app.include_router(blog.router)
+app.include_router(contact.router)
 
+# Health check endpoint
+@app.get("/api/health")
+async def health_check():
+    return {"status": "healthy", "message": "Portfolio API is running"}
 
-# Define Models
-class StatusCheck(BaseModel):
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    client_name: str
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
-
-class StatusCheckCreate(BaseModel):
-    client_name: str
-
-# Add your routes to the router instead of directly to app
-@api_router.get("/")
+# Legacy hello world endpoint
+@app.get("/api/")
 async def root():
     return {"message": "Hello World"}
-
-@api_router.post("/status", response_model=StatusCheck)
-async def create_status_check(input: StatusCheckCreate):
-    status_dict = input.dict()
-    status_obj = StatusCheck(**status_dict)
-    _ = await db.status_checks.insert_one(status_obj.dict())
-    return status_obj
-
-@api_router.get("/status", response_model=List[StatusCheck])
-async def get_status_checks():
-    status_checks = await db.status_checks.find().to_list(1000)
-    return [StatusCheck(**status_check) for status_check in status_checks]
-
-# Include the router in the main app
-app.include_router(api_router)
 
 app.add_middleware(
     CORSMiddleware,
